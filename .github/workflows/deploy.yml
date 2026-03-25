@@ -1,6 +1,10 @@
 name: Deploy to Render
 
 on:
+  push:
+    branches:
+      - main   # or your branch name
+      
   workflow_dispatch:
     inputs:
       reason:
