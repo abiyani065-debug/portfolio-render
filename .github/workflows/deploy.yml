@@ -1,0 +1,38 @@
+name: Deploy to Render
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason for deploying"
+        required: false
+        default: "Manual deploy"
+
+jobs:
+  deploy:
+    name: Trigger Render Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run basic check
+        run: node -e "console.log('✅ Node.js is working correctly')"
+
+      - name: Trigger Render Deployment
+        run: |
+          echo "Deploying: ${{ github.event.inputs.reason }}"
+          curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" \
+            -w "\nHTTP Status: %{http_code}"
+
+      - name: Deployment triggered
+        run: echo "✅ Render deployment triggered successfully!"
