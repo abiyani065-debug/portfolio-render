@@ -9,8 +9,8 @@ on:
         default: "Manual deploy"
 
 jobs:
-  deploy:
-    name: Trigger Render Deploy
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -25,9 +25,32 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run basic check
-        run: node -e "console.log('✅ Node.js is working correctly')"
+      - name: Check server.js exists
+        run: test -f server.js && echo "✅ server.js found" || exit 1
 
+      - name: Check feedback.js exists
+        run: test -f api/feedback.js && echo "✅ api/feedback.js found" || exit 1
+
+      - name: Check index.html exists
+        run: test -f public/index.html && echo "✅ public/index.html found" || exit 1
+
+      - name: Validate package.json has start script
+        run: |
+          node -e "
+            const pkg = require('./package.json');
+            if (!pkg.scripts || !pkg.scripts.start) {
+              console.error('❌ No start script in package.json');
+              process.exit(1);
+            }
+            console.log('✅ start script found:', pkg.scripts.start);
+          "
+
+  deploy:
+    name: Trigger Render Deploy
+    runs-on: ubuntu-latest
+    needs: test        # ← only runs if tests pass
+
+    steps:
       - name: Trigger Render Deployment
         run: |
           echo "Deploying: ${{ github.event.inputs.reason }}"
